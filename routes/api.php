@@ -28,10 +28,11 @@ Route::group([
 });
 
 Route::group([
-    'middleware' => 'auth:api'
+    'middleware' => ['auth:api', 'scope:admin']
 ], function () {
-    Route::post('prueba', 'App\Http\Controllers\PruebaController@store')->middleware(['auth:api', 'scope:admin']);
-
+    Route::post('prueba', 'App\Http\Controllers\PruebaController@store');
 });
 
-Route::apiResource('prueba', 'App\Http\Controllers\PruebaController');
+Route::get('prueba', 'App\Http\Controllers\PruebaController@index');
+Route::get('prueba/{id}', 'App\Http\Controllers\PruebaController@show');
+// Route::apiResource('prueba', 'App\Http\Controllers\PruebaController');
