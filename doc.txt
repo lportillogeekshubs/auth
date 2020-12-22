@@ -1,0 +1,92 @@
+Instalar Passport
+	composer require laravel/passport
+
+Crear modelo y migración para Roles
+	php artisan make:model -m Roles
+
+Migración de Roles
+	public function up()
+	{
+  		Schema::create('roles', function (Blueprint $table) {
+			$table->primary(['user_id', 'role']);
+        			$table->integer('user_id')->unsigned();
+        			$table->string('role');
+    		});
+	}
+
+Modelo de Role
+	public function role() {
+    		return $this->hasOne(Role::class);
+	}
+
+Crear semilla para usuario admin
+	public function run()
+	{
+ 	 	// \App\Models\User::factory(10)->create();
+
+        		DB::table('users')->insert([
+            		'name' => 'Admin',
+            		'email' => 'admin@admin.com',
+            		'password' => bcrypt('admin')
+        		]);
+
+        		DB::table('roles')->insert([
+            		'user_id' => 1,
+            		'role' => 'admin'
+        		]);
+    	}
+
+Aplicamos migración para crear las tablas de Passport y la tabla de Roles
+	php artisan migrate
+
+Generar claves de Passport
+    php artisan passport:install
+
+Crear middleware para chequear el role
+    php artisan make:middleware CheckRole
+
+        public function handle($request, Closure $next)
+        {
+            $userRole = $request->user()->role()->first();
+            if ($userRole) {
+                $request->request->add([
+                    'scope' => $userRole->role
+                ]);
+            }
+
+            return $next($request);
+        }
+    }
+
+Agregar middlewares en Kernel.php
+    protected $routeMiddleware = [
+        .
+        .
+        .
+        'scopes' => \Laravel\Passport\Http\Middleware\CheckScopes::class,
+        'scope' => \Laravel\Passport\Http\Middleware\CheckForAnyScope::class,
+        'role' => \App\Http\Middleware\CheckRole::class,
+    ];
+
+Definir scopes en AuthServiceProvider.php
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        Passport::routes();
+
+        // Mandatory to define Scope
+        Passport::tokensCan([
+            'admin' => 'Admin Users',
+            'basic' => 'Basic Users'
+        ]);
+
+        Passport::setDefaultScope([
+            'basic'
+        ]);
+    }
+
+Crear
+
+
+
