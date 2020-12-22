@@ -48,6 +48,20 @@ Aplicamos migración para crear las tablas de Passport y la tabla de Roles con e
 Generar claves de Passport
     php artisan passport:install
 
+Cambiar el driver de la api en app\config\auth.php por passport
+    'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'users',
+            'hash' => false,
+        ],
+    ],
+
 Crear middleware para chequear el role
     php artisan make:middleware CheckRole
 
