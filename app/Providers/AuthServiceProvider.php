@@ -29,9 +29,8 @@ class AuthServiceProvider extends ServiceProvider
         Passport::routes();
 
         Passport::tokensCan([
-            'admin' => 'Add/Edit/Delete Users',
-            'moderator' => 'Add/Edit Users',
-            'basic' => 'List Users'
+            'admin' => 'Admin Users',
+            'basic' => 'Basic Users'
         ]);
 
         Passport::setDefaultScope([

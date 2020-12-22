@@ -14,7 +14,7 @@ Migración de Roles
     		});
 	}
 
-Modelo de Role
+Modelo de User
 	public function role() {
     		return $this->hasOne(Role::class);
 	}
@@ -124,12 +124,11 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully created user!'], 201);
     }
 
-    public function login(Request $request)
+       public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
-            'password' => 'required|string',
-            'remember_me' => 'boolean'
+            'password' => 'required|string'
         ]);
 
         if ($validator->fails()) {
