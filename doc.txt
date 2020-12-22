@@ -36,8 +36,8 @@ Crear semilla para usuario admin
         		]);
     	}
 
-Aplicamos migración para crear las tablas de Passport y la tabla de Roles
-	php artisan migrate
+Aplicamos migración para crear las tablas de Passport y la tabla de Roles con el modificador --seed para generar el usuario admin
+	php artisan migrate --seed
 
 Generar claves de Passport
     php artisan passport:install
@@ -86,7 +86,102 @@ Definir scopes en AuthServiceProvider.php
         ]);
     }
 
-Crear
+Crear AuthController
+    php artisan make:controller AuthController
 
+    <?php
 
+namespace App\Http\Controllers;
 
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+
+class AuthController extends Controller
+{
+    public function signUp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            response()->json([
+                'created' => false,
+                'errors' => $validator->errors()->all()
+            ], 400);
+        }
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password)
+        ]);
+
+        return response()->json(['message' => 'Successfully created user!'], 201);
+    }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+            'remember_me' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            response()->json([
+                'created' => false,
+                'errors'  => $validator->errors()->all()
+            ], 400);
+        }
+
+        $credentials = request(['email', 'password']);
+
+        if (!Auth::attempt($credentials))
+            return response()->json(['message' => 'Unauthorized'], 401);
+
+        $user = $request->user();
+        $userRole = $user->role()->first();
+
+        if ($userRole) {
+            $this->scope = $userRole->role;
+        }
+
+        $tokenResult = $user->createToken($user->email.' - '.now(), [$this->scope]);
+
+        return response()->json([
+            'access_token' => $tokenResult->accessToken,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->token()->revoke();
+
+        return response()->json([
+            'message' => 'Successfully logged out'
+        ]);
+    }
+}
+
+Agregar middlewares a las rutas o a los controladores
+    Rutas:
+        Route::post('prueba', 'PruebaController@store')->middleware(['auth:api', 'scope:admin']);
+
+    En el constructor del controlador:
+        public function __construct()
+        {
+            $this->middleware(
+                [
+                    'auth:api', 
+                    'scopes:edit,create,delete'
+                ])->except(
+                    [
+                        'index', 'show'
+                    ]
+                );
+        }

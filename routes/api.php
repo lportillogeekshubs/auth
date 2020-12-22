@@ -30,6 +30,8 @@ Route::group([
 Route::group([
     'middleware' => 'auth:api'
 ], function () {
-    Route::apiResource('prueba', 'App\Http\Controllers\PruebaController');
+    Route::post('prueba', 'App\Http\Controllers\PruebaController@store')->middleware(['auth:api', 'scope:admin']);
+
 });
 
+Route::apiResource('prueba', 'App\Http\Controllers\PruebaController');
